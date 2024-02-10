@@ -63,6 +63,8 @@ public class HelloServlet extends HttpServlet {
         response.getWriter().print(jsonResponse);
     }
 
+
+
     public void destroy() {
     }
 }
