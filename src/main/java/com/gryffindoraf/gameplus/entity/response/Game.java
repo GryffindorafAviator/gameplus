@@ -1,7 +1,6 @@
-package com.gryffindoraf.gameplus;
+package com.gryffindoraf.gameplus.entity.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import javafx.util.Builder;
 
 public class Game {
     @JsonProperty("name")

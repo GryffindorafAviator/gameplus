@@ -1,6 +1,6 @@
 package com.gryffindoraf.gameplus;
 
-import com.gryffindoraf.gameplus.Game;
+import com.gryffindoraf.gameplus.entity.response.Game;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
