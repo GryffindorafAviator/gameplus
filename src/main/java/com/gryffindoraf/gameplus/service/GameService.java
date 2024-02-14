@@ -1,5 +1,8 @@
 package com.gryffindoraf.gameplus.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gryffindoraf.gameplus.entity.response.Game;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
@@ -9,10 +12,11 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
-import javax.imageio.IIOException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Arrays;
+import java.util.List;
 
 @Service
 public class GameService {
@@ -71,4 +75,31 @@ public class GameService {
             }
         }
     }
+
+    private List<Game> getGameList(String data) throws TwitchException {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            return Arrays.asList(mapper.readValue(data, Game[].class));
+        }
+        catch (JsonProcessingException e) {
+            e.printStackTrace();
+            throw new TwitchException("Failed to parse game data from Twitch API");
+        }
+    }
+
+    public List<Game> topGames(int limit) throws TwitchException {
+        if (limit <= 0) {
+            limit = DEFAULT_GAME_LIMIT;
+        }
+        return getGameList(searchTwitch(buildGameURL(TOP_GAME_URL, "", limit)));
+    }
+
+    public Game searchGame(String gameName) throws TwitchException {
+        List<Game> gameList = getGameList(searchTwitch(buildGameURL(GAME_SEARCH_URL_TEMPLATE, gameName, 0)));
+        if (gameList.size() != 0) {
+            return gameList.get(0);
+        }
+        return null;
+    }
 }
+
