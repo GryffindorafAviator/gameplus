@@ -26,7 +26,7 @@ public class GameService {
     private static final String GAME_SEARCH_URL_TEMPLATE = "https://api.twitch.tv/helix/games?name=%s";
     private static final int DEFAULT_GAME_LIMIT = 20;
 
-    private  String buildGameURL(String url, String gameName, int limit) {
+    private String buildGameURL(String url, String gameName, int limit) {
         if (gameName.equals("")) {
             return String.format(url, limit);
         }
