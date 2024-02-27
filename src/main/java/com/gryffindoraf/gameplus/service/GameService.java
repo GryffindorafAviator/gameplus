@@ -2,6 +2,8 @@ package com.gryffindoraf.gameplus.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gryffindoraf.gameplus.entity.db.Item;
+import com.gryffindoraf.gameplus.entity.db.ItemType;
 import com.gryffindoraf.gameplus.entity.response.Game;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.ResponseHandler;
@@ -25,6 +27,11 @@ public class GameService {
     private static final String TOP_GAME_URL = "https://api.twitch.tv/helix/games/top?first=%s";
     private static final String GAME_SEARCH_URL_TEMPLATE = "https://api.twitch.tv/helix/games?name=%s";
     private static final int DEFAULT_GAME_LIMIT = 20;
+    private static final String STREAM_SEARCH_URL_TEMPLATE = "https://api.twitch.tv/helix/streams?game_id=%s&first=%s";
+    private static final String VIDEO_SEARCH_URL_TEMPLATE = "https://api.twitch.tv/helix/video?game_id=%s&first=%s";
+    private static final String CLIP_SEARCH_URL_TEMPLATE = "https://api.twitch.tv/helix/clips?game_id=%s&first=%s";
+    private static final String TWITCH_BASE_URL = "https://www.twitch.tv/";
+    private static final int DEFAULT_SEARCH_LIMIT = 20;
 
     private String buildGameURL(String url, String gameName, int limit) {
         if (gameName.equals("")) {
@@ -39,6 +46,16 @@ public class GameService {
             }
             return String.format(url, gameName);
         }
+    }
+
+    private String buildSearchURL(String url, String gameId, int limit) {
+        try {
+            gameId = URLEncoder.encode(gameId, "UTF-8");
+        }
+        catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return String.format(url, gameId, limit);
     }
 
     private String searchTwitch(String url) throws TwitchException {
@@ -100,6 +117,42 @@ public class GameService {
             return gameList.get(0);
         }
         return null;
+    }
+
+    private List<Item> getItemList(String data) throws TwitchException {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            return Arrays.asList(mapper.readValue(data, Item[].class));
+        }
+        catch (JsonProcessingException e) {
+            e.printStackTrace();
+            throw new TwitchException("Failed to parse item data from Twitch API");
+        }
+    }
+
+    private List<Item> searchStreams(String gameId, int limit) throws TwitchException {
+        List<Item> streams = getItemList(searchTwitch(buildSearchURL(STREAM_SEARCH_URL_TEMPLATE, gameId, limit)));
+        for (Item item : streams) {
+            item.setType(ItemType.STREAM);
+            item.setUrl(TWITCH_BASE_URL + item.getBroadcasterName());
+        }
+        return streams;
+    }
+
+    private List<Item> searchClips(String gameId, int limit) throws TwitchException {
+        List<Item> clips = getItemList(searchTwitch(buildSearchURL(CLIP_SEARCH_URL_TEMPLATE, gameId, limit)));
+        for (Item item : clips) {
+            item.setType(ItemType.CLIP);
+        }
+        return clips;
+    }
+
+    private List<Item> searchVideos(String gameId, int limit) throws TwitchException {
+        List<Item> videos = getItemList(searchTwitch(buildSearchURL(VIDEO_SEARCH_URL_TEMPLATE, gameId, limit)));
+            for (Item item : videos) {
+                item.setType(ItemType.VIDEO);
+            }
+        return videos;
     }
 }
 
