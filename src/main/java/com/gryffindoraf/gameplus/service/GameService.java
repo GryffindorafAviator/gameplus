@@ -17,8 +17,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class GameService {
@@ -153,6 +152,36 @@ public class GameService {
                 item.setType(ItemType.VIDEO);
             }
         return videos;
+    }
+
+    public List<Item> searchByType(String gameId, ItemType type, int limit) throws TwitchException {
+        List<Item> items = Collections.emptyList();
+
+        switch (type) {
+            case STREAM:
+                items = searchStreams(gameId, limit);
+                break;
+            case VIDEO:
+                items = searchVideos(gameId, limit);
+                break;
+            case CLIP:
+                items = searchClips(gameId, limit);
+                break;
+        }
+
+        for (Item item : items) {
+            item.setGameId(gameId);
+        }
+
+        return items;
+    }
+
+    public Map<String, List<Item>> searchItems(String gameId) throws TwitchException {
+        Map<String, List<Item>> itemMap = new HashMap<>();
+        for (ItemType type : ItemType.values()) {
+            itemMap.put(type.toString(), searchByType(gameId, type, DEFAULT_GAME_LIMIT));
+        }
+        return itemMap;
     }
 }
 
